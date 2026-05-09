@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, getDate } from 'date-fns';
@@ -10,11 +10,15 @@ const COLORS = [
 
 export default function HabitTracker() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [habits, setHabits] = useState([
-    { id: 1, name: 'HYDRATION', color: '#8ecae6', completed: {} },
-    { id: 2, name: 'EXERCISE', color: '#219ebc', completed: {} },
-  ]);
+  const [habits, setHabits] = useState(() => {
+    const saved = localStorage.getItem('habits');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [newHabitName, setNewHabitName] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('habits', JSON.stringify(habits));
+  }, [habits]);
 
   const daysInMonth = useMemo(() => {
     return eachDayOfInterval({
@@ -40,7 +44,7 @@ export default function HabitTracker() {
     if (!newHabitName.trim()) return;
     const newHabit = {
       id: Date.now(),
-      name: newHabitName.toUpperCase(),
+      name: newHabitName,
       color: COLORS[habits.length % COLORS.length],
       completed: {}
     };
