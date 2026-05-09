@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2, LayoutGrid, List } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
+import './App.css';
 
 const COLORS = [
   '#8ecae6', '#219ebc', '#023047', '#ffb703', '#fb8500',
@@ -82,11 +82,7 @@ export default function HabitTracker() {
                 className={`p-1.5 transition-all relative z-10 ${view === 'list' ? 'text-white' : 'text-slate-600'}`}
               >
                 {view === 'list' && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-slate-900 rounded-sm -z-10"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
+                  <div className="absolute inset-0 bg-slate-900 rounded-sm -z-10 css-tab-active" />
                 )}
                 <List size={18} strokeWidth={2.5} />
               </button>
@@ -96,11 +92,7 @@ export default function HabitTracker() {
                 className={`p-1.5 transition-all relative z-10 ${view === 'grid' ? 'text-white' : 'text-slate-600'}`}
               >
                 {view === 'grid' && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-slate-900 rounded-sm -z-10"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
+                  <div className="absolute inset-0 bg-slate-900 rounded-sm -z-10 css-tab-active" />
                 )}
                 <LayoutGrid size={18} strokeWidth={2.5} />
               </button>
@@ -141,20 +133,16 @@ export default function HabitTracker() {
               </div>
 
               {/* Habit Rows */}
-              <AnimatePresence mode="popLayout">
+              <div className="habit-list-container">
                 {habits.length === 0 ? (
                   <div className="py-8 text-center opacity-50 border-t border-slate-900">
                     No habits added yet. Start by adding one below!
                   </div>
                 ) : (
                   habits.map((habit) => (
-                    <motion.div
+                    <div
                       key={habit.id}
-                      layout
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      className="flex border-t border-slate-900 group"
+                      className="flex border-t border-slate-900 group habit-row-entry"
                     >
                       {/* Habit Name Cell */}
                       <div className="w-48 shrink-0 py-2 pr-4 flex justify-between items-center border-r-2 border-slate-900">
@@ -180,10 +168,8 @@ export default function HabitTracker() {
                               className={`w-8 h-10 border-r border-b border-slate-300 cursor-pointer relative overflow-hidden ${isToday ? 'bg-orange-100/40' : ''}`}
                             >
                               {isChecked && (
-                                <motion.div
-                                  initial={{ scale: 0, rotate: -45 }}
-                                  animate={{ scale: 1, rotate: 0 }}
-                                  className="absolute inset-0 m-1"
+                                <div
+                                  className="absolute inset-0 m-1 css-mark-check"
                                   style={{
                                     backgroundColor: habit.color,
                                     backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)`,
@@ -195,68 +181,61 @@ export default function HabitTracker() {
                           );
                         })}
                       </div>
-                    </motion.div>
+                    </div>
                   ))
                 )}
-              </AnimatePresence>
+              </div>
             </div>
           </div>
         ) : (
           /* Grid View (2nd View - Based on Image) */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-            <AnimatePresence mode="popLayout">
-              {habits.map((habit) => (
-                <motion.div
-                  key={habit.id}
-                  layout
-                  className="flex flex-col items-center"
-                >
-                  <div className="w-full flex justify-between items-center mb-4 group">
-                    <h3 className="text-lg font-bold tracking-[2px] uppercase text-center flex-1 ml-6">{habit.name}</h3>
-                    <button
-                      onClick={() => setHabits(habits.filter(h => h.id !== habit.id))}
-                      className="opacity-0 group-hover:opacity-100 text-red-400 transition-opacity"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+            {habits.map((habit) => (
+              <div
+                key={habit.id}
+                className="flex flex-col items-center habit-row-entry"
+              >
+                <div className="w-full flex justify-between items-center mb-4 group">
+                  <h3 className="text-lg font-bold tracking-[2px] uppercase text-center flex-1 ml-6">{habit.name}</h3>
+                  <button
+                    onClick={() => setHabits(habits.filter(h => h.id !== habit.id))}
+                    className="opacity-0 group-hover:opacity-100 text-red-400 transition-opacity"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
 
-                  <div className="grid grid-cols-7 gap-x-4 gap-y-2 text-center relative">
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                      <div key={i} className="text-sm font-bold opacity-80 mb-2">{day}</div>
-                    ))}
-                    {calendarGrid.map((day, i) => {
-                      const dateKey = format(day, 'yyyy-MM-dd');
-                      const isChecked = habit.completed[dateKey];
-                      const isCurrentMonth = isSameMonth(day, currentDate);
-                      const isToday = format(new Date(), 'yyyy-MM-dd') === dateKey;
+                <div className="grid grid-cols-7 gap-x-4 gap-y-2 text-center relative">
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                    <div key={i} className="text-sm font-bold opacity-80 mb-2">{day}</div>
+                  ))}
+                  {calendarGrid.map((day, i) => {
+                    const dateKey = format(day, 'yyyy-MM-dd');
+                    const isChecked = habit.completed[dateKey];
+                    const isCurrentMonth = isSameMonth(day, currentDate);
+                    const isToday = format(new Date(), 'yyyy-MM-dd') === dateKey;
 
-                      return (
-                        <div
-                          key={i}
-                          onClick={() => toggleDay(habit.id, dateKey)}
-                          className={`w-8 h-8 flex items-center justify-center cursor-pointer relative text-lg ${!isCurrentMonth ? 'opacity-0 pointer-events-none' : ''}`}
-                        >
-                          {isToday && <div className="absolute inset-0 bg-orange-100/40 rounded-full" />}
-                          <span className="relative z-10">
-                            {format(day, 'd')}
-                          </span>
-                          {isChecked && (
-                            <motion.div
-                              initial={{ scale: 0, rotate: -45 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              className="absolute inset-0 flex items-center justify-center"
-                            >
-                              <span className="text-3xl font-light select-none opacity-80" style={{ color: habit.color }}>✕</span>
-                            </motion.div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => toggleDay(habit.id, dateKey)}
+                        className={`w-8 h-8 flex items-center justify-center cursor-pointer relative text-lg ${!isCurrentMonth ? 'opacity-0 pointer-events-none' : ''}`}
+                      >
+                        {isToday && <div className="absolute inset-0 bg-orange-100/40 rounded-full" />}
+                        <span className="relative z-10">
+                          {format(day, 'd')}
+                        </span>
+                        {isChecked && (
+                          <div className="absolute inset-0 flex items-center justify-center css-mark-x">
+                            <span className="text-3xl font-light select-none opacity-80" style={{ color: habit.color }}>✕</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
