@@ -10,7 +10,10 @@ const COLORS = [
 
 export default function HabitTracker() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState('list');
+  const [view, setView] = useState(() => {
+    const savedView = localStorage.getItem('habitTrackerView');
+    return savedView ? savedView : 'list';
+  });
   const [habits, setHabits] = useState(() => {
     const saved = localStorage.getItem('habits');
     return saved ? JSON.parse(saved) : [];
@@ -24,6 +27,10 @@ export default function HabitTracker() {
   useEffect(() => {
     localStorage.setItem('habits', JSON.stringify(habits));
   }, [habits]);
+
+  useEffect(() => {
+    localStorage.setItem('habitTrackerView', view);
+  }, [view]);
 
   const daysInMonth = useMemo(() => {
     return eachDayOfInterval({
