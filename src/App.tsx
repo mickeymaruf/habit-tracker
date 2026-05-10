@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Trash2, LayoutGrid, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, LayoutGrid, List, X, Check } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import './App.css';
 
@@ -18,6 +18,8 @@ export default function HabitTracker() {
   const [newHabitName, setNewHabitName] = useState('');
   const [editingHabitId, setEditingHabitId] = useState(null);
   const [editValue, setEditValue] = useState('');
+  const [deletingHabitId, setDeletingHabitId] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
 
   useEffect(() => {
     localStorage.setItem('habits', JSON.stringify(habits));
@@ -69,6 +71,14 @@ export default function HabitTracker() {
   const saveEdit = (id) => {
     setHabits(prev => prev.map(h => h.id === id ? { ...h, name: editValue } : h));
     setEditingHabitId(null);
+  };
+
+  const handleDelete = (id) => {
+    if (deleteConfirmation.toLowerCase() === 'delete') {
+      setHabits(habits.filter(h => h.id !== id));
+      setDeletingHabitId(null);
+      setDeleteConfirmation('');
+    }
   };
 
   return (
@@ -157,7 +167,7 @@ export default function HabitTracker() {
                       className="flex border-t border-slate-900 group habit-row-entry"
                     >
                       {/* Habit Name Cell */}
-                      <div className="w-48 shrink-0 py-2 pr-4 flex justify-between items-center border-r-2 border-slate-900">
+                      <div className="w-48 shrink-0 py-2 pr-4 flex justify-between items-center border-r-2 border-slate-900 relative">
                         {editingHabitId === habit.id ? (
                           <div className="flex items-center gap-1 w-full">
                             <input
@@ -178,12 +188,30 @@ export default function HabitTracker() {
                             {habit.name}
                           </span>
                         )}
-                        <button
-                          onClick={() => setHabits(habits.filter(h => h.id !== habit.id))}
-                          className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity ml-2"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        
+                        <div className="flex items-center ml-2">
+                          {deletingHabitId === habit.id ? (
+                            <div className="absolute left-0 top-0 bottom-0 right-0 bg-[#fcfaf2] z-20 flex items-center px-2 gap-2">
+                              <input 
+                                autoFocus
+                                placeholder='Type "delete"' 
+                                className="font-sans text-sm border-b border-red-400 bg-transparent outline-none w-full"
+                                value={deleteConfirmation}
+                                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleDelete(habit.id)}
+                              />
+                              <button onClick={() => handleDelete(habit.id)} className="text-red-600"><Check size={14}/></button>
+                              <button onClick={() => {setDeletingHabitId(null); setDeleteConfirmation('');}} className="text-slate-400"><X size={14}/></button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setDeletingHabitId(habit.id)}
+                              className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Days Grid Cells */}
@@ -226,7 +254,7 @@ export default function HabitTracker() {
                 key={habit.id}
                 className="flex flex-col items-center habit-row-entry"
               >
-                <div className="w-full flex justify-between items-center mb-4 group">
+                <div className="w-full flex justify-between items-center mb-4 group relative">
                   <div className="flex-1 ml-6 text-center">
                     {editingHabitId === habit.id ? (
                       <input
@@ -246,12 +274,28 @@ export default function HabitTracker() {
                       </h3>
                     )}
                   </div>
-                  <button
-                    onClick={() => setHabits(habits.filter(h => h.id !== habit.id))}
-                    className="opacity-0 group-hover:opacity-100 text-red-400 transition-opacity"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  
+                  {deletingHabitId === habit.id ? (
+                    <div className="absolute inset-0 bg-[#fcfaf2] z-20 flex items-center justify-center gap-2 px-4">
+                      <input 
+                        autoFocus
+                        placeholder='Type "delete"' 
+                        className="font-sans text-sm border-b border-red-400 bg-transparent outline-none w-full text-center"
+                        value={deleteConfirmation}
+                        onChange={(e) => setDeleteConfirmation(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleDelete(habit.id)}
+                      />
+                      <button onClick={() => handleDelete(habit.id)} className="text-red-600"><Check size={18}/></button>
+                      <button onClick={() => {setDeletingHabitId(null); setDeleteConfirmation('');}} className="text-slate-400"><X size={18}/></button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeletingHabitId(habit.id)}
+                      className="opacity-0 group-hover:opacity-100 text-red-400 transition-opacity"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-7 gap-x-4 gap-y-2 text-center relative">
