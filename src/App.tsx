@@ -16,6 +16,8 @@ export default function HabitTracker() {
     return saved ? JSON.parse(saved) : [];
   });
   const [newHabitName, setNewHabitName] = useState('');
+  const [editingHabitId, setEditingHabitId] = useState(null);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     localStorage.setItem('habits', JSON.stringify(habits));
@@ -57,6 +59,16 @@ export default function HabitTracker() {
     };
     setHabits([...habits, newHabit]);
     setNewHabitName('');
+  };
+
+  const startEditing = (habit) => {
+    setEditingHabitId(habit.id);
+    setEditValue(habit.name);
+  };
+
+  const saveEdit = (id) => {
+    setHabits(prev => prev.map(h => h.id === id ? { ...h, name: editValue } : h));
+    setEditingHabitId(null);
   };
 
   return (
@@ -146,10 +158,29 @@ export default function HabitTracker() {
                     >
                       {/* Habit Name Cell */}
                       <div className="w-48 shrink-0 py-2 pr-4 flex justify-between items-center border-r-2 border-slate-900">
-                        <span className="truncate font-bold tracking-wide">{habit.name}</span>
+                        {editingHabitId === habit.id ? (
+                          <div className="flex items-center gap-1 w-full">
+                            <input
+                              autoFocus
+                              className="bg-transparent border-b border-slate-900 outline-none w-full font-bold"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveEdit(habit.id)}
+                              onKeyDown={(e) => e.key === 'Enter' && saveEdit(habit.id)}
+                            />
+                          </div>
+                        ) : (
+                          <span 
+                            className="truncate font-bold tracking-wide"
+                            onClick={() => startEditing(habit)}
+                            title={habit.name}
+                          >
+                            {habit.name}
+                          </span>
+                        )}
                         <button
                           onClick={() => setHabits(habits.filter(h => h.id !== habit.id))}
-                          className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity"
+                          className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity ml-2"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -196,7 +227,25 @@ export default function HabitTracker() {
                 className="flex flex-col items-center habit-row-entry"
               >
                 <div className="w-full flex justify-between items-center mb-4 group">
-                  <h3 className="text-lg font-bold tracking-[2px] uppercase text-center flex-1 ml-6">{habit.name}</h3>
+                  <div className="flex-1 ml-6 text-center">
+                    {editingHabitId === habit.id ? (
+                      <input
+                        autoFocus
+                        className="bg-transparent border-b border-slate-900 outline-none font-bold tracking-[2px] uppercase text-center w-full"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => saveEdit(habit.id)}
+                        onKeyDown={(e) => e.key === 'Enter' && saveEdit(habit.id)}
+                      />
+                    ) : (
+                      <h3 
+                        className="text-lg font-bold tracking-[2px] uppercase"
+                        onClick={() => startEditing(habit)}
+                      >
+                        {habit.name}
+                      </h3>
+                    )}
+                  </div>
                   <button
                     onClick={() => setHabits(habits.filter(h => h.id !== habit.id))}
                     className="opacity-0 group-hover:opacity-100 text-red-400 transition-opacity"
