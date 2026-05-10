@@ -1,7 +1,14 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, type FormEvent, type KeyboardEvent } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2, LayoutGrid, List, X, Check } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import './App.css';
+
+interface Habit {
+  id: number;
+  name: string;
+  color: string;
+  completed: Record<string, boolean>;
+}
 
 const COLORS = [
   '#8ecae6', '#219ebc', '#023047', '#ffb703', '#fb8500',
@@ -9,20 +16,20 @@ const COLORS = [
 ];
 
 export default function HabitTracker() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState(() => {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [view, setView] = useState<string>(() => {
     const savedView = localStorage.getItem('habitTrackerView');
     return savedView ? savedView : 'list';
   });
-  const [habits, setHabits] = useState(() => {
+  const [habits, setHabits] = useState<Habit[]>(() => {
     const saved = localStorage.getItem('habits');
     return saved ? JSON.parse(saved) : [];
   });
-  const [newHabitName, setNewHabitName] = useState('');
-  const [editingHabitId, setEditingHabitId] = useState(null);
-  const [editValue, setEditValue] = useState('');
-  const [deletingHabitId, setDeletingHabitId] = useState(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [newHabitName, setNewHabitName] = useState<string>('');
+  const [editingHabitId, setEditingHabitId] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+  const [deletingHabitId, setDeletingHabitId] = useState<number | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<string>('');
 
   useEffect(() => {
     localStorage.setItem('habits', JSON.stringify(habits));
@@ -45,7 +52,7 @@ export default function HabitTracker() {
     return eachDayOfInterval({ start, end });
   }, [currentDate]);
 
-  const toggleDay = (habitId, dateKey) => {
+  const toggleDay = (habitId: number, dateKey: string) => {
     setHabits(prev => prev.map(habit => {
       if (habit.id === habitId) {
         const newCompleted = { ...habit.completed };
@@ -57,10 +64,10 @@ export default function HabitTracker() {
     }));
   };
 
-  const addHabit = (e) => {
+  const addHabit = (e: FormEvent) => {
     e.preventDefault();
     if (!newHabitName.trim()) return;
-    const newHabit = {
+    const newHabit: Habit = {
       id: Date.now(),
       name: newHabitName,
       color: COLORS[habits.length % COLORS.length],
@@ -70,17 +77,17 @@ export default function HabitTracker() {
     setNewHabitName('');
   };
 
-  const startEditing = (habit) => {
+  const startEditing = (habit: Habit) => {
     setEditingHabitId(habit.id);
     setEditValue(habit.name);
   };
 
-  const saveEdit = (id) => {
+  const saveEdit = (id: number) => {
     setHabits(prev => prev.map(h => h.id === id ? { ...h, name: editValue } : h));
     setEditingHabitId(null);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number) => {
     if (deleteConfirmation.toLowerCase() === 'delete') {
       setHabits(habits.filter(h => h.id !== id));
       setDeletingHabitId(null);
@@ -183,11 +190,11 @@ export default function HabitTracker() {
                               value={editValue}
                               onChange={(e) => setEditValue(e.target.value)}
                               onBlur={() => saveEdit(habit.id)}
-                              onKeyDown={(e) => e.key === 'Enter' && saveEdit(habit.id)}
+                              onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && saveEdit(habit.id)}
                             />
                           </div>
                         ) : (
-                          <span 
+                          <span
                             className="truncate font-bold tracking-wide"
                             onClick={() => startEditing(habit)}
                             title={habit.name}
@@ -195,20 +202,20 @@ export default function HabitTracker() {
                             {habit.name}
                           </span>
                         )}
-                        
+
                         <div className="flex items-center ml-2">
                           {deletingHabitId === habit.id ? (
                             <div className="absolute left-0 top-0 bottom-0 right-0 bg-[#fcfaf2] z-20 flex items-center px-2 gap-2">
-                              <input 
+                              <input
                                 autoFocus
-                                placeholder='Type "delete"' 
+                                placeholder='Type "delete"'
                                 className="font-sans text-sm border-b border-red-400 bg-transparent outline-none w-full"
                                 value={deleteConfirmation}
                                 onChange={(e) => setDeleteConfirmation(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleDelete(habit.id)}
+                                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleDelete(habit.id)}
                               />
-                              <button onClick={() => handleDelete(habit.id)} className="text-red-600"><Check size={14}/></button>
-                              <button onClick={() => {setDeletingHabitId(null); setDeleteConfirmation('');}} className="text-slate-400"><X size={14}/></button>
+                              <button onClick={() => handleDelete(habit.id)} className="text-red-600"><Check size={14} /></button>
+                              <button onClick={() => { setDeletingHabitId(null); setDeleteConfirmation(''); }} className="text-slate-400"><X size={14} /></button>
                             </div>
                           ) : (
                             <button
@@ -270,10 +277,10 @@ export default function HabitTracker() {
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         onBlur={() => saveEdit(habit.id)}
-                        onKeyDown={(e) => e.key === 'Enter' && saveEdit(habit.id)}
+                        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && saveEdit(habit.id)}
                       />
                     ) : (
-                      <h3 
+                      <h3
                         className="text-lg font-bold tracking-[2px] uppercase"
                         onClick={() => startEditing(habit)}
                       >
@@ -281,19 +288,19 @@ export default function HabitTracker() {
                       </h3>
                     )}
                   </div>
-                  
+
                   {deletingHabitId === habit.id ? (
                     <div className="absolute inset-0 bg-[#fcfaf2] z-20 flex items-center justify-center gap-2 px-4">
-                      <input 
+                      <input
                         autoFocus
-                        placeholder='Type "delete"' 
+                        placeholder='Type "delete"'
                         className="font-sans text-sm border-b border-red-400 bg-transparent outline-none w-full text-center"
                         value={deleteConfirmation}
                         onChange={(e) => setDeleteConfirmation(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleDelete(habit.id)}
+                        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleDelete(habit.id)}
                       />
-                      <button onClick={() => handleDelete(habit.id)} className="text-red-600"><Check size={18}/></button>
-                      <button onClick={() => {setDeletingHabitId(null); setDeleteConfirmation('');}} className="text-slate-400"><X size={18}/></button>
+                      <button onClick={() => handleDelete(habit.id)} className="text-red-600"><Check size={18} /></button>
+                      <button onClick={() => { setDeletingHabitId(null); setDeleteConfirmation(''); }} className="text-slate-400"><X size={18} /></button>
                     </div>
                   ) : (
                     <button
